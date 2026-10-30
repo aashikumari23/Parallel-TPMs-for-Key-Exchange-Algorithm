@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neural key exchange lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg viewBox="0 0 40 40" aria-hidden="true" class="mark"><circle cx="20" cy="7" r="4"/><circle cx="8" cy="30" r="4"/><circle cx="20" cy="30" r="4"/><circle cx="32" cy="30" r="4"/><path d="M20 11 8 26M20 11v15M20 11l12 15"/></svg>
+    <div>
+      <h1>Tree parity machine key exchange</h1>
+      <p class="sub">Two machines learn from each other's outputs until their weights match. Watch it happen, then test who else can listen in.</p>
+    </div>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="live">Live exchange</button>
+  </nav>
+</header>
+
+<div class="shell">
+  <aside class="controls" aria-label="Parameters">
+    <fieldset>
+      <legend>Machine</legend>
+      <label>Hidden units K <input type="number" id="K" value="3" min="1" max="7"></label>
+      <label>Inputs per unit N <input type="number" id="N" value="100" min="4" max="1000"></label>
+      <label>Weight bound L <input type="number" id="L" value="12" min="2" max="80"></label>
+      <label>Parallel pairs P <input type="number" id="P" value="1" min="1" max="8"></label>
+    </fieldset>
+    <fieldset>
+      <legend>Protocol</legend>
+      <label>Batch size B <input type="number" id="B" value="10" min="1" max="50"></label>
+      <label>Stop counter MAX <input type="number" id="MAX" value="200" min="1" max="5000"></label>
+      <label>Counting rule
+        <select id="count_mode">
+          <option value="pseudocode">Per tau (Algorithm 1)</option>
+          <option value="text">Per batch (Section III-B text)</option>
+        </select>
+      </label>
+      <label>Inputs
+        <select id="input_mode">
+          <option value="fresh">Fresh random</option>
+          <option value="scrn_batch">SCRN, per batch (Algorithm 1)</option>
+        </select>
+      </label>
+      <label>Round limit <input type="number" id="limit" value="200000" min="100" max="2000000" step="1000"></label>
+      <label>Reconciliation modulus <input type="number" id="ecc_modulus" value="4" min="2" max="64"></label>
+    </fieldset>
+    <fieldset>
+      <legend>Step size</legend>
+      <div class="seg" id="modeSeg">
+        <button data-mode="conventional">Conventional</button>
+        <button data-mode="paper" class="on">Paper 1-h</button>
+      </div>
+      <p class="hint" id="modeHint"></p>
+      <label>hop (odd rounds, paper 1-h) <input type="number" id="hop" value="3" min="1" max="8"></label>
+    </fieldset>
+    <fieldset>
+      <legend>Eavesdropper</legend>
+      <label>Attack
+        <select id="attack">
+          <option value="">None</option>
+          <option value="simple">Simple</option>
+          <option value="geometric">Geometric</option>
+          <option value="majority" selected>Majority</option>
+        </select>
+      </label>
+      <label>Attacker networks M <input type="number" id="M" value="50" min="1" max="200"></label>
+      <label>Seed <input type="number" id="seed" value="7"></label>
+    </fieldset>
+  </aside>
+
+  <main>
+    <section class="panel" data-panel="live">
+      <div class="actions">
+        <button class="primary" id="runBtn">Start exchange</button>
+        <span class="status" id="liveStatus">Pick a step size and start an exchange.</span>
+      </div>
+      <figure class="lattice">
+        <canvas id="grid" aria-label="Weight agreement grid"></canvas>
+        <figcaption>Each cell is one weight. It fills in when Alice's and Bob's copies agree. Rows are hidden units, grouped by pair.</figcaption>
+      </figure>
+      <div class="gauges">
+        <div class="gauge"><span class="gv" id="gComm">0</span><span class="gl">communication rounds</span></div>
+        <div class="gauge"><span class="gv" id="gMatch">0%</span><span class="gl">weights equal</span></div>
+        <div class="gauge"><span class="gv" id="gHop">1</span><span class="gl">largest step this batch</span></div>
+        <div class="gauge eve"><span class="gv" id="gEve">n/a</span><span class="gl">attacker agreement, weakest pair</span></div>
+      </div>
+      <div class="charts">
+        <figure>
+          <canvas id="chartOverlap" height="220"></canvas>
+          <figcaption><i class="k alice"></i>True overlap (observer only) <i class="k eve"></i>Attacker agreement on her weakest pair (she needs every pair)</figcaption>
+        </figure>
+        <figure>
+          <canvas id="chartHop" height="220"></canvas>
+          <figcaption><i class="k bob"></i>Largest step used in each batch (paper 1-h alternates 1 and hop inside every batch)</figcaption>
+        </figure>
+      </div>
+      <div class="result" id="liveResult" hidden></div>
+    </section>
+  </main>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
